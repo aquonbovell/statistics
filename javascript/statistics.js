@@ -1,63 +1,74 @@
-module.exports = class Statistics {
-  constructor(args) {
-    this.data = [...args];
+module.exports = class Analysis {
+  constructor() {
+    this.data = [];
   }
 
-  count() {
+  load(arr) {
+    this.data = arr;
+  }
+
+  count(key = null) {
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    if (key) return this.data.filter((value) => value === key).length;
     return this.data.length;
   }
 
-  sum() {
-    return this.data.reduce((acc, curr) => {
-      return (acc += curr);
-    }, 0);
+  sum(key = null) {
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    if (key)
+      return this.data.reduce(
+        (acc, curr) => (curr === key ? (acc += curr) : (acc += 0)),
+        0
+      );
+    return this.data.reduce((acc, curr) => (acc += curr), 0);
   }
+
   min() {
-    const values = [...this.data];
-    return values.length <= 1
-      ? values
-      : values
-          .sort((a, b) => {
-            return a - b;
-          })
-          .shift();
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    let min = this.data[0];
+    this.data.forEach((value) => {
+      if (min > value) min = value;
+    });
+    return min;
   }
+
   max() {
-    const values = [...this.data];
-    return values.length <= 1
-      ? values
-      : values.sort((a, b) => {
-          return b - a;
-        })[0];
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    let max = this.data[0];
+    this.data.forEach((value) => {
+      if (max < value) max = value;
+    });
+    return max;
   }
 
   range() {
+    if (!this.data.length) throw new Error("Error: No data loaded");
     return this.max() - this.min();
   }
 
   mean() {
-    return this.sum() / this.count();
-  }
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    return Math.round((this.sum() / this.count()) * 100) / 100;
+  }   
 
   median() {
-    const values = this.data;
-    values.sort((a, b) => {
-      a - b;
-    });
-    if (values.length % 2 === 0)
-      return `${values[Math.floor(values.length / 2 - 1)]}, ${
-        values[Math.floor(values.length / 2)]
-      }`;
-    return values[Math.floor(values.length / 2 - 1)];
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    const data = [...this.data];
+    data.sort();
+    const data_len = data.length;
+    if (data_len % 2 === 0)
+      return (
+        (data[Math.floor(data_len / 2 - 1)] + data[Math.floor(data_len / 2)]) /
+        2
+      );
+    return data[Math.floor(data_len / 2 - 1)];
   }
 
   mode() {
-    const mode = {
-      mode: 0,
-      count: 0,
-    };
-    const value_keys = new Set(this.data);
-    value_keys.forEach((key) => {
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    const mode = { mode: 0, count: 0 };
+    const keys = new Set(this.data);
+    keys.forEach((key) => {
       const count = this.data.filter((value) => {
         return value === key;
       }).length;
@@ -69,29 +80,32 @@ module.exports = class Statistics {
     return mode;
   }
 
-  var() {
+  variance() {
+    if (!this.data.length) throw new Error("Error: No data loaded");
     const variance = this.data.reduce((acc, curr) => {
       return (acc += Math.pow(curr - this.mean(), 2));
     }, 0);
-    return variance / this.count();
+    return Math.round((variance / this.count()) * 10000) / 10000;
   }
 
-  std() {
-    return Math.sqrt(this.var());
+  standard_deviation() {
+    if (!this.data.length) throw new Error("Error: No data loaded");
+    return Math.round(Math.sqrt(this.variance()) * 10000) / 10000;
   }
 
-  freqDist() {
+  frequency_distribution() {
+    if (!this.data.length) throw new Error("Error: No data loaded");
     const freqDistri = [];
-    const value_keys = new Set(
+    const keys = new Set(
       this.data.sort((a, b) => {
         return b - a;
       })
     );
-    value_keys.forEach((key) => {
+    keys.forEach((key) => {
       const count = this.data.filter((value) => {
         return value === key;
       }).length;
-      freqDistri.push({ value: key, frequency: count * 4 });
+      freqDistri.push({ value: key, frequency: count * 5 });
     });
     return freqDistri.sort((a, b) => {
       return b.frequency - a.frequency;
@@ -99,17 +113,17 @@ module.exports = class Statistics {
   }
 
   describe() {
+    if (!this.data.length) throw new Error("Error: No data loaded");
     console.log("Count:", this.count());
     console.log("Sum: ", this.sum());
     console.log("Min: ", this.min());
     console.log("Max: ", this.max());
     console.log("Range: ", this.range());
-    console.log("Mean: ", this.mean().toFixed(0));
+    console.log("Mean: ", this.mean());
     console.log("Median: ", this.median());
     console.log("Mode: ", this.mode());
-    console.log("Variance: ", this.var().toFixed(1));
-    console.log("Standard Deviation: ", this.std().toFixed(1));
-    console.log("Variance: ", this.var().toFixed(1));
-    console.log("Frequency Distribution: ", this.freqDist());
+    console.log("Variance: ", this.variance());
+    console.log("Standard Deviation: ", this.standard_deviation());
+    console.log("Frequency Distribution: ", this.frequency_distribution());
   }
 };
